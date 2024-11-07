@@ -24,7 +24,7 @@ TEST_LOGANALYTICS_JSON ?= $(TEST_CREDENTIALS_DIR)/loganalytics.json
 export TEST_CREDENTIALS_JSON TEST_LOGANALYTICS_JSON TEST_AKS_CREDENTIALS_JSON
 
 VERSION ?= v1.6.2
-REGISTRY ?= ghcr.io
+REGISTRY ?= mcr.microsoft.com/oss/virtual-kubelet
 IMG_NAME ?= virtual-kubelet
 INIT_IMG_NAME ?= init-validation
 IMAGE ?= $(REGISTRY)/$(IMG_NAME)

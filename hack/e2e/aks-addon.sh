@@ -20,7 +20,7 @@ if [ "$PR_RAND" = "" ]; then
 fi
 
 : "${RESOURCE_GROUP:=aks-addon-aci-test-$RANDOM_NUM}"
-: "${LOCATION:=eastus2euap}"
+: "${LOCATION:=westus}"
 : "${CLUSTER_NAME:=${RESOURCE_GROUP}}"
 : "${NODE_COUNT:=1}"
 : "${CHART_NAME:=aks-addon--test}"
@@ -53,13 +53,13 @@ fi
 
 TMPDIR=""
 
-cleanup() {
- az group delete --name "$RESOURCE_GROUP" --yes --no-wait || true
- if [ -n "$TMPDIR" ]; then
-     rm -rf "$TMPDIR"
- fi
-}
-trap 'cleanup' EXIT
+# cleanup() {
+#  az group delete --name "$RESOURCE_GROUP" --yes --no-wait || true
+#  if [ -n "$TMPDIR" ]; then
+#      rm -rf "$TMPDIR"
+#  fi
+# }
+# trap 'cleanup' EXIT
 
 
 check_aci_registered() {

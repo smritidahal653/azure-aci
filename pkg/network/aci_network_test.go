@@ -7,11 +7,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	aznetworkv2 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/virtual-kubelet/azure-aci/pkg/auth"
 	testsutil "github.com/virtual-kubelet/azure-aci/pkg/tests"
+	"go.uber.org/mock/gomock"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -436,4 +439,38 @@ func TestValidateNetworkConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetACISubnet(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockSubnetsClient := NewMockSubnetsClientInterface(ctrl)
+	ctx := context.Background()
+	vnetResourceGroup := "test-resource-group"
+	vnetName := "test-vnet"
+	subnetName := "test-subnet"
+	subnetCIDR := "10.0.0.0/24"
+
+	mockSubnetsClient.EXPECT().Get(ctx, vnetResourceGroup, vnetName, subnetName, nil).Return(armnetwork.SubnetsClientGetResponse{
+		Subnet: armnetwork.Subnet{
+			ID:   to.Ptr("/subscriptions/test-subscription/resourceGroups/test-resource-group/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/test-subnet"),
+			Name: to.Ptr(subnetName),
+			Properties: &armnetwork.SubnetPropertiesFormat{
+				AddressPrefix: to.Ptr(subnetCIDR),
+			},
+		},
+	}, nil)
+
+	pn := &ProviderNetwork{
+		VnetResourceGroup: vnetResourceGroup,
+		VnetName:          vnetName,
+		SubnetName:        subnetName,
+		SubnetCIDR:        subnetCIDR,
+	}
+
+	subnet, err := pn.GetACISubnet(ctx, mockSubnetsClient)
+	assert.NoError(t, err)
+	assert.Equal(t, subnetName, *subnet.Name)
+	assert.Equal(t, subnetCIDR, *subnet.Properties.AddressPrefix)
 }
